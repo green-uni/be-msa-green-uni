@@ -1,11 +1,10 @@
 constants:
   api:
     prefix: /api/academic
-  enum:
-    scan-package: com.green.academic
+
 
 server:
-  port: 8084
+  port: ${ACADEMIC_PORT}
 
 spring:
   config:
@@ -13,27 +12,27 @@ spring:
       - optional:classpath:application-common.yaml
       - optional:classpath:application-jpa.yaml
       - optional:classpath:application-auth.yaml
+      - optional:file:.env[.properties]
   application:
     name: academic-service
   datasource:
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: jdbc:log4jdbc:mysql://${DB_HOST}:${DB_PORT}/gu_academic?createDatabaseIfNotExist=true&characterEncoding=UTF-8
+    url: jdbc:log4jdbc:mysql://${DB_HOST}:${DB_PORT}/my_gu_academic?createDatabaseIfNotExist=true&characterEncoding=UTF-8
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
-#  kafka:
-#    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}
-#    producer:
-#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-#      acks: all
-#      retries: 3
-#      properties:
-#        enable.idempotence: true
-#        max.in.flight.requests.per.connection: 5
-#    consumer:
-#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-#      properties:
-#        spring.json.trusted.packages: "*"
+    properties:
+      hibernate:
+        # 하이버네이트 7의 메타데이터 조회 버그 방지
+        temp:
+          use_jdbc_metadata_defaults: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+outbox:
+  enabled: true

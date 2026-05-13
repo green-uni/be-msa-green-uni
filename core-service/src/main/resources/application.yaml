@@ -1,11 +1,20 @@
 constants:
   api:
     prefix: /api/core
-  enum:
-    scan-package: com.green.core
+
+school:
+  network:
+    cidr: "192.168.0.0/24" 
+    # /24는 앞에 32비트중 24비트를 가리고 뒤에남은 8비트 값만 바뀔수있다는 뜻
+    # 즉 192.168.0 까지는 동일하고 뒤에 .0 부분[본인기기정보]만 바뀌는값 허용
+
+mybatis:
+  mapper-locations: classpath:mappers/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
 
 server:
-  port: 8083
+  port: ${CORE_PORT}
 
 spring:
   config:
@@ -13,27 +22,34 @@ spring:
       - optional:classpath:application-common.yaml
       - optional:classpath:application-jpa.yaml
       - optional:classpath:application-auth.yaml
+      - optional:file:.env[.properties]
   application:
     name: core-service
   datasource:
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: jdbc:log4jdbc:mysql://${DB_HOST}:${DB_PORT}/gu_core?createDatabaseIfNotExist=true&characterEncoding=UTF-8
+    url: jdbc:log4jdbc:mysql://${DB_HOST}:${DB_PORT}/my_gu_core?createDatabaseIfNotExist=true&characterEncoding=UTF-8
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
-#  kafka:
-#    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}
-#    producer:
-#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-#      acks: all
-#      retries: 3
-#      properties:
-#        enable.idempotence: true
-#        max.in.flight.requests.per.connection: 5
-#    consumer:
-#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-#      properties:
-#        spring.json.trusted.packages: "*"
+    properties:
+      hibernate:
+        # 하이버네이트 7의 메타데이터 조회 버그 방지
+        temp:
+          use_jdbc_metadata_defaults: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    # [발행] Major, Collage 이벤트를 Outbox에 담아 보냄
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    # [수신] Student, Professor, Calendar 캐시를 업데이트
+    consumer:
+      group-id: core-service-group
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+outbox:
+  enabled: true

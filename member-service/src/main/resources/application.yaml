@@ -1,11 +1,11 @@
 constants:
   api:
-    prefix: /api/member
-  enum:
-    scan-package: com.green.member
+      prefix: /api/member
+  file:
+    directory: ${FILE_DIRECTORY}
 
 server:
-  port: 8082
+  port: ${MEMBER_PORT}
 
 spring:
   config:
@@ -13,27 +13,37 @@ spring:
       - optional:classpath:application-common.yaml
       - optional:classpath:application-jpa.yaml
       - optional:classpath:application-auth.yaml
+      - optional:file:.env[.properties]
   application:
     name: member-service
   datasource:
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: jdbc:log4jdbc:mysql://${DB_HOST}:${DB_PORT}/gu_member?createDatabaseIfNotExist=true&characterEncoding=UTF-8
+    url: jdbc:log4jdbc:mysql://${DB_HOST}:${DB_PORT}/my_gu_member?createDatabaseIfNotExist=true&characterEncoding=UTF-8
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
-#  kafka:
-#    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}
-#    producer:
-#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-#      acks: all
-#      retries: 3
-#      properties:
-#        enable.idempotence: true
-#        max.in.flight.requests.per.connection: 5
-#    consumer:
-#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-#      properties:
-#        spring.json.trusted.packages: "*"
+    show-sql: true
+    properties:
+      hibernate:
+        temp:
+          use_jdbc_metadata_defaults: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    # [발행] student, professor 이벤트를 Outbox에 담아 보냄
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    # [수신] Major 캐시 정보를 받기 위한 설정
+    consumer:
+      group-id: member-service-group
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.green.common.model"
+outbox:
+  enabled: true
+logging:
+  level:
+    org.springframework.web: DEBUG
