@@ -62,11 +62,11 @@ public class ScheduleService {
 
         Map<EnumScheduleType, Boolean> data = new LinkedHashMap<>();
         for (EnumScheduleType type : EnumScheduleType.values()) {
-            if (type == EnumScheduleType.ETC) continue; // ETC 제외
+            if (type == EnumScheduleType.ETC) continue;
             data.put(type, false);
         }
         for (Schedule schedule : activeSchedules) {
-            if (schedule.getType() == EnumScheduleType.ETC) continue; // ETC 제외
+            if (schedule.getType() == EnumScheduleType.ETC) continue;
             data.put(schedule.getType(), true);
         }
         return data;
@@ -100,4 +100,30 @@ public class ScheduleService {
         scheduleRepository.delete(schedule);
     }
 
+    @Transactional(readOnly = true)
+    public ScheduleBannerRes getActiveBannerSchedule() {
+        return scheduleRepository.findByIsActiveTrue().stream()
+                .filter(s -> s.getType() != EnumScheduleType.ETC)
+                .findFirst()
+                .map(s -> ScheduleBannerRes.builder()
+                        .type(s.getType().getCode())
+                        .title(s.getTitle())
+                        .startDate(s.getStartDate().toLocalDate())
+                        .endDate(s.getEndDate().toLocalDate())
+                        .build())
+                .orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ScheduleBannerRes> getActiveBannerSchedules() {
+        return scheduleRepository.findByIsActiveTrue().stream()
+                .filter(s -> s.getType() != EnumScheduleType.ETC)
+                .map(s -> ScheduleBannerRes.builder()
+                        .type(s.getType().getCode())
+                        .title(s.getTitle())
+                        .startDate(s.getStartDate().toLocalDate())
+                        .endDate(s.getEndDate().toLocalDate())
+                        .build())
+                .toList();
+    }
 }

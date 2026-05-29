@@ -22,7 +22,15 @@ public class MajorCacheController {
     public ResultResponse<?> getMajorList() {
         return ResultResponse.builder()
                 .message("학과 목록 조회")
-                .data(majorCacheService.findAll())
+                .data(majorCacheService.getMajors())
+                .build();
+    }
+
+    @GetMapping("/colleges")
+    public ResultResponse<?> getCollegeList() {
+        return ResultResponse.builder()
+                .message("단과대 목록 조회")
+                .data(majorCacheService.getColleges())
                 .build();
     }
 }

@@ -1,11 +1,15 @@
 package com.green.core.entity.course;
 
 import com.green.common.entity.CreatedAt;
+import com.green.core.entity.attendance.Attendance;
 import com.green.core.entity.grade.Grade;
 import com.green.core.entity.lecture.Lecture;
 import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "course",
@@ -36,7 +40,28 @@ public class Course extends CreatedAt {
     @Column(name = "semester", nullable = false)
     private Integer semester; // 복합 Unique
 
+    @Column(name = "is_del", nullable = false)
+    @Builder.Default
+    private boolean isDel = false;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     // mappedBy = "course" 는 Grade 엔터티 안에 course라는 필드가 주인이라는 뜻
     @OneToOne(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private Grade grade;
+
+    //수강 정정 기간에 취소하면 해당 학생의 출석 데이터도 자동으로 같이 지우기
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Attendance> attendances;
+
+    public void softDelete() {
+        this.isDel = true;
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public void reactivate() {
+        this.isDel = false;
+        this.deletedAt = null;
+    }
 }

@@ -2,6 +2,8 @@ package com.green.member.entity.student;
 
 import com.green.common.entity.CreatedAt;
 import com.green.common.enumcode.EnumStudentStatus;
+import com.green.member.enumcode.NullableProfessorStatusConverter;
+import com.green.member.enumcode.NullableStudentStatusConverter;
 import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,7 +29,8 @@ public class StudentHistory extends CreatedAt {
     @Column(name = "change_type", nullable = false, length = 20)
     private String changeType; // 신입학, 휴학, 복학, 자퇴
 
-    @Column(name = "old_status", nullable = false, length = 20)
+    @Convert(converter = NullableStudentStatusConverter.class)
+    @Column(name = "old_status", length = 20)
     private EnumStudentStatus oldStatus;
 
     @Column(name = "new_status", nullable = false, length = 20)
@@ -47,9 +50,9 @@ public class StudentHistory extends CreatedAt {
     @Column(name = "return_semester")
     private Integer returnSemester;
 
-    @Column(name = "reason")
-    private String reason;
+    @Column(name = "note")
+    private String note;
 
-    @Column(name = "updator_code", nullable = false)
-    private Long updatorCode;
+    @Column(name = "updater_code", nullable = false)
+    private Long updaterCode;
 }

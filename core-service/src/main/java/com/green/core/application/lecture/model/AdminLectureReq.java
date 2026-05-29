@@ -11,8 +11,8 @@ import lombok.*;
 @Builder
 @ToString
 public class AdminLectureReq {
-        private Integer page ;
-        private Integer size ;
         private EnumApprovalStatus status;
-        private Integer startIdx;
+        private String lectureName;
+        private Integer size;
+        private Integer offset;
 }
